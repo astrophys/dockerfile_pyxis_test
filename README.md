@@ -11,6 +11,7 @@ Docker images so I can deploy them on a BCM cluster with `enroot` / `pyxis`.
 This code was tested on a [BCM](https://developer.nvidia.com/bright-cluster-manager)-deployed HPC system running BCM-9.2 with Ubuntu 20.04.6.
 If [pyxis](https://github.com/NVIDIA/pyxis) and [enroot](https://github.com/NVIDIA/enroot) isn't installed, install it.
 
+## Install
 Installing `enroot` and `pyxis` on compute and head nodes:
 1. Dependencies
 ```
@@ -32,9 +33,44 @@ pdsh -w n[01,02] systemctl restart slurmd
 srun --help | grep container	# check that new options are available
 ```
 
+4. If you want Docker so you can build the Dockerfile, here are the steps
+
+    a) If using a VM via vSphere client, you may need power off the machine and enable `Expose hardware assisted virtualization to the guest OS`.
+
+    b) Check that you have kvm kernel modules
+    ```
+    apt install cpu-checker     # Might need this
+    lsmod | grep kvm
+    kvm-ok
+    ```
+
+    c) [Install Docker](https://docs.docker.com/engine/install/ubuntu/)
+    ```
+    sudo apt-get update
+    sudo apt-get install ./docker-desktop-4.28.0-amd64.deb
+    apt-get install ca-certificates curl
+    install -m 0755 -d /etc/apt/keyrings
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyr    ings/docker.asc
+    chmod a+r /etc/apt/keyrings/docker.asc
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+    apt-get update
+    apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-p    lugin docker-compose-plugin
+    ps -ef | grep docker      # Docker Daemon is actually running now
+    docker run hello-world        # WORKS!
+    ```
+
 ## Build
 
-## Run
+To build a docker image from this Dockerfile
+```
+gcc -static src/main.c -o hello
+sudo docker build --tag hello .
+sudo docker image ls                     # should show up
+```
 
-## Install
+## Run
+```
+docker run hello
+```
+
 
